@@ -1,1 +1,7 @@
+# cache
+__pycache__/
+# dev venv
+.venv/
+
+# Generated db
 database.db
