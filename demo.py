@@ -1,11 +1,19 @@
 from fastapi import FastAPI
 from sqlmodel import Field, Session, SQLModel, create_engine, select
 
-class Hero(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
+class HeroBase(SQLModel):
     name: str = Field(index=True)
     secret_name: str
     age: int | None = Field(default=None, index=True)
+
+class Hero(HeroBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+
+class HeroCreate(HeroBase):
+    pass
+
+class HeroPublic(HeroBase):
+    id: int
 
 sqlite_file_name = "database.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
@@ -22,15 +30,16 @@ app = FastAPI()
 def on_startup():
     create_db_and_tables()
 
-@app.post("/heroes/", response_model=Hero)
-def create_hero(hero: Hero):
+@app.post("/heroes/", response_model=HeroPublic)
+def create_hero(hero: HeroCreate):
     with Session(engine) as session:
-        session.add(hero)
+        db_hero = Hero.model_validate(hero)
+        session.add(db_hero)
         session.commit()
-        session.refresh(hero)
+        session.refresh(db_hero)
         return hero
 
-@app.get("/heroes/", response_model=list[Hero])
+@app.get("/heroes/", response_model=list[HeroPublic])
 def read_heroes():
     with Session(engine) as session:
         heroes = session.exec(select(Hero)).all()
