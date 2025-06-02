@@ -9,3 +9,9 @@ source .venv/bin/activate
 pip install sqlmodel
 pip install "fastapi[standard]" "uvicorn[standard]"
 ```
+
+## Running
+
+```
+fastapi dev demo.py
+```
