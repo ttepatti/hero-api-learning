@@ -47,6 +47,12 @@ class HeroUpdate(SQLModel):
 
     team_id: int | None = None
 
+class HeroPublicWithTeam(HeroPublic):
+    team: TeamPublic | None = None
+    
+class TeamPublicWithHeroes(TeamPublic):
+    heroes: list[HeroPublic] = []
+
 sqlite_file_name = "database.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
 
@@ -90,7 +96,7 @@ def read_heroes(
     heroes = session.exec(select(Hero).offset(offset).limit(limit)).all()
     return heroes
 
-@app.get("/heroes/{hero_id}", response_model=HeroPublic)
+@app.get("/heroes/{hero_id}", response_model=HeroPublicWithTeam)
 def read_hero(*, session: Session = Depends(get_session), hero_id: int):
     hero = session.get(Hero, hero_id)
     if not hero:
@@ -142,7 +148,7 @@ def read_teams(
     teams = session.exec(select(Team).offset(offset).limit(limit)).all()
     return teams
 
-@app.get("/teams/{team_id}", response_model=TeamPublic)
+@app.get("/teams/{team_id}", response_model=TeamPublicWithHeroes)
 def read_team(*, session: Session = Depends(get_session), team_id: int):
     team = session.get(Team, team_id)
     if not team:
